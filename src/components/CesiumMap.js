@@ -1,63 +1,39 @@
-import React, { useState } from "react";
-import { Viewer, Entity, EntityDescription,Camera } from "resium";
-import { Cartesian3, Color, ColorMaterialProperty } from "cesium";
+import React, { useRef } from 'react';
+import { Viewer, Entity, PointGraphics, Color } from 'resium';
+import * as Cesium from 'cesium';
 
-// A function that generates a random color
-function getRandomColor() {
-    return Color.fromRandom({ alpha: 1.0 });
-}
+const CesiumMap = () => {
+  const viewerRef = useRef();
 
-// A React component that renders a map and clickable to add object on the map
-function CesiumMap() {
-    // Create a state to store the entities
-    const [entities, setEntities] = useState([]);
+  const addEntityAtCenter = () => {
+    const viewer = viewerRef.current.cesiumElement;
+    //const center = viewer.camera.pickEllipsoid(viewer.canvas.center);
+    // Get the current camera position
+    const cameraPosition = viewer.camera.positionCartographic;
 
-    // Create a handler for the map click event
-    // function handleMapClick(event) {
-    //     // Get the clicked position
-    //     const position = event.position;
+    // Extract latitude and longitude
+    const centerLatitude = Cesium.Math.toDegrees(cameraPosition.latitude);
+    const centerLongitude = Cesium.Math.toDegrees(cameraPosition.longitude);
+    viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(centerLongitude, centerLatitude),
+      point: {
+        pixelSize: 10,
+        color: Cesium.Color.RED,
+      },
+    });
+  };
 
-    //     // Create a new entity object with the position and a random color
-    //     const entity = {
-    //         position: position,
-    //         point: {
-    //         pixelSize: 10,
-    //         color: new ColorMaterialProperty(getRandomColor()),
-    //         },
-    //     };
-
-    //     // Add the entity to the state
-    //     setEntities([...entities, entity]);
-    // }
-    const handleMapClick2 = (movement) => {
-        debugger;
-        const { endPosition } = movement;
-        console.log('movement:::',movement);
-        const entity = {
-            position: endPosition,
-            point: {
-            pixelSize: 10,
-            color: new ColorMaterialProperty(getRandomColor()),
-            },
-        };
-
-        // Add the entity to the state
-        setEntities([...entities, entity]);
-      };
-
-    // Render the viewer component with the click handler and the entities
-    return (
-        <Viewer full >
-        {entities.map((entity, index) => (
-            <Entity key={index} {...entity}>
-                <EntityDescription>
-                <p>You clicked on: {entity.position.x},{entity.position.y}</p>
-                </EntityDescription>
-            </Entity>
-        ))}
-        <Camera onLeftClick={handleMapClick2}/>
-        </Viewer>
-    );
-}
+  return (
+    <div>
+        <button onClick={addEntityAtCenter}>Add Entity at Center</button>
+          <div >
+              <Viewer ref={viewerRef} >
+                  {/* Other map configurations and components go here */}
+                  <Entity />
+              </Viewer>
+          </div>
+    </div>
+  );
+};
 
 export default CesiumMap;
